@@ -14,6 +14,8 @@ const ATTACK_COOLDOWN = 60; // フレーム
 
 // ブロック関連
 const BLOCK_RANGE = 70;
+const MAX_BLOCKING_TIME = 300; // 5秒（60フPS = 300フレーム）
+const BLOCK_COOLDOWN_TIME = 180; // 3秒（60FPS = 180フレーム）
 
 // ゲーム状態
 class Character {
@@ -30,6 +32,8 @@ class Character {
         this.isPlayer = isPlayer;
         
         this.isBlocking = false;
+        this.blockingDuration = 0; // ブロック中の時間
+        this.blockCooldown = 0; // ブロックのクールダウン時間
         this.isJumping = false;
         this.isAttacking = false;
         this.attackCooldown = 0;
@@ -70,6 +74,20 @@ class Character {
         // 攻撃クールダウン
         if (this.attackCooldown > 0) {
             this.attackCooldown--;
+        }
+        
+        // ブロッククールダウン
+        if (this.blockCooldown > 0) {
+            this.blockCooldown--;
+        }
+        
+        // ブロック中の時間制限
+        if (this.isBlocking && this.blockingDuration > 0) {
+            this.blockingDuration--;
+            // 最大ブロック時間を超えたら強制的にブロック終了
+            if (this.blockingDuration <= 0) {
+                this.isBlocking = false;
+            }
         }
     }
     
@@ -116,11 +134,27 @@ class Character {
     }
     
     block() {
+        // クールダウン中はブロックできない
+        if (this.blockCooldown > 0) {
+            return false;
+        }
+        
+        // すでにブロック中なら追加時間を設定
+        if (!this.isBlocking) {
+            this.blockingDuration = MAX_BLOCKING_TIME;
+        }
+        
         this.isBlocking = true;
+        return true;
     }
     
     stopBlocking() {
+        if (this.isBlocking) {
+            // ブロック終了時にクールダウンを開始
+            this.blockCooldown = BLOCK_COOLDOWN_TIME;
+        }
         this.isBlocking = false;
+        this.blockingDuration = 0;
     }
     
     takeDamage(damage) {
@@ -150,6 +184,8 @@ class Character {
         this.vy = 0;
         this.health = this.maxHealth;
         this.isBlocking = false;
+        this.blockingDuration = 0;
+        this.blockCooldown = 0;
         this.isJumping = false;
         this.isAttacking = false;
         this.attackCooldown = 0;
@@ -280,7 +316,17 @@ class AIBot {
                 }
                 break;
             case 'block':
-                this.character.block();
+                // ブロック可能かチェック（クールダウン中でなく、ブロック中でない）
+                if (this.character.blockCooldown <= 0) {
+                    this.character.block();
+                } else {
+                    // クールダウン中は移動に切り替え
+                    if (playerChar.x > this.character.x) {
+                        this.character.vx = 3;
+                    } else {
+                        this.character.vx = -3;
+                    }
+                }
                 break;
             case 'moveRight':
                 this.character.vx = 3;
@@ -329,7 +375,10 @@ class DukshiGame {
             if (e.key === 'Shift') {
                 e.preventDefault();
                 if (this.gameRunning) {
-                    this.player.block();
+                    const blocked = this.player.block();
+                    if (!blocked) {
+                        // ブロックができない場合（クールダウン中）は何もしない
+                    }
                 }
             }
             if (e.key === 'w' || e.key === 'W') {
@@ -475,6 +524,46 @@ class DukshiGame {
             this.ctx.lineTo(this.bot.x, this.bot.y);
             this.ctx.fill();
             this.ctx.stroke();
+        }
+        
+        // ブロック状態の表示
+        if (this.player.isBlocking) {
+            const blockingPercent = (this.player.blockingDuration / MAX_BLOCKING_TIME) * 100;
+            this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+            this.ctx.fillRect(this.player.x - 30, this.player.y - 40, 60, 8);
+            this.ctx.strokeStyle = '#00ff00';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(this.player.x - 30, this.player.y - 40, 60, 8);
+            this.ctx.fillStyle = '#00ff00';
+            this.ctx.fillRect(this.player.x - 30, this.player.y - 40, (blockingPercent / 100) * 60, 8);
+        }
+        
+        if (this.bot.isBlocking) {
+            const blockingPercent = (this.bot.blockingDuration / MAX_BLOCKING_TIME) * 100;
+            this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+            this.ctx.fillRect(this.bot.x - 30, this.bot.y - 40, 60, 8);
+            this.ctx.strokeStyle = '#00ff00';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(this.bot.x - 30, this.bot.y - 40, 60, 8);
+            this.ctx.fillStyle = '#00ff00';
+            this.ctx.fillRect(this.bot.x - 30, this.bot.y - 40, (blockingPercent / 100) * 60, 8);
+        }
+        
+        // ブロッククールダウンの表示
+        if (this.player.blockCooldown > 0) {
+            this.ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            this.ctx.font = '14px Arial';
+            this.ctx.textAlign = 'center';
+            const cooldownSeconds = Math.ceil(this.player.blockCooldown / 60);
+            this.ctx.fillText(`Block: ${cooldownSeconds}s`, this.player.x, this.player.y + 35);
+        }
+        
+        if (this.bot.blockCooldown > 0) {
+            this.ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            this.ctx.font = '14px Arial';
+            this.ctx.textAlign = 'center';
+            const cooldownSeconds = Math.ceil(this.bot.blockCooldown / 60);
+            this.ctx.fillText(`Block: ${cooldownSeconds}s`, this.bot.x, this.bot.y + 35);
         }
     }
     
