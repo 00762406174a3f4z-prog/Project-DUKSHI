@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デュクシ - 1VS1ゲーム</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- ゲームタイトル -->
+        <h1 class="game-title">デュクシ</h1>
+        
+        <!-- ゲーム状態表示 -->
+        <div class="status-bar">
+            <div class="game-status" id="gameStatus">準備中...</div>
+        </div>
+
+        <!-- プレイヤーエリア -->
+        <div class="battle-arena">
+            <!-- プレイヤー左側（人間） -->
+            <div class="player-side player-human">
+                <h2>YOU</h2>
+                <div class="player-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">ライフ</span>
+                        <div class="life-bar">
+                            <div class="life-fill" id="playerlife"></div>
+                        </div>
+                        <span class="stat-value" id="playerLifeValue">3/3</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">MP</span>
+                        <div class="mp-bar">
+                            <div class="mp-fill" id="playerMp"></div>
+                        </div>
+                        <span class="stat-value" id="playerMpValue">3/3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央戦闘ログ -->
+            <div class="battle-log-section">
+                <div class="battle-log" id="battleLog">
+                    <div class="log-message">ゲーム開始</div>
+                </div>
+                <div class="battle-visual" id="battleVisual">準備完了！</div>
+            </div>
+
+            <!-- プレイヤー右側（ボット） -->
+            <div class="player-side player-bot">
+                <h2>BOT</h2>
+                <div class="player-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">ライフ</span>
+                        <div class="life-bar">
+                            <div class="life-fill" id="botLife"></div>
+                        </div>
+                        <span class="stat-value" id="botLifeValue">3/3</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">MP</span>
+                        <div class="mp-bar">
+                            <div class="mp-fill" id="botMp"></div>
+                        </div>
+                        <span class="stat-value" id="botMpValue">3/3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- コマンド選択エリア -->
+        <div class="command-section" id="commandSection">
+            <p class="turn-info">ターン <span id="turnCounter">1</span></p>
+            <div class="command-buttons">
+                <button class="cmd-btn cmd-attack" id="cmdAttack" data-action="DUKSHI">
+                    <span class="cmd-icon">👊</span>
+                    <span class="cmd-name">デュクシ</span>
+                    <span class="cmd-cost">MP-1</span>
+                </button>
+                <button class="cmd-btn cmd-defense" id="cmdDefense" data-action="BARRIER">
+                    <span class="cmd-icon">🛡️</span>
+                    <span class="cmd-name">バリア</span>
+                    <span class="cmd-cost">MP-1</span>
+                </button>
+                <button class="cmd-btn cmd-charge" id="cmdCharge" data-action="CHARGE">
+                    <span class="cmd-icon">⚡</span>
+                    <span class="cmd-name">チャージ</span>
+                    <span class="cmd-cost">MP+1</span>
+                </button>
+            </div>
+            <p class="waiting-message" id="waitingMessage" style="display: none;">相手の選択を待機中...</p>
+        </div>
+
+        <!-- ゲーム終了画面 -->
+        <div class="game-over-modal" id="gameOverModal" style="display: none;">
+            <div class="modal-content">
+                <h2 id="gameOverTitle">ゲーム終了</h2>
+                <p id="gameOverMessage">ゲーム終了しました</p>
+                <button class="btn-restart" id="btnRestart">もう一度プレイ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
