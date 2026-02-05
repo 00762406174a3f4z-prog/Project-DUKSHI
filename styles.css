@@ -1,4 +1,3 @@
-/* ===== リセット・基本スタイル ===== */
 * {
     margin: 0;
     padding: 0;
@@ -6,791 +5,247 @@
 }
 
 body {
-    font-family: 'Arial', 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
-    min-height: 100vh;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 .game-container {
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 900px;
     width: 100%;
-    max-width: 1400px;
-    background: #0a0a0f;
-    border-radius: 10px;
-    box-shadow: 0 0 40px rgba(255, 0, 100, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border: 2px solid #ff0064;
 }
 
-/* ===== ゲームヘッダー ===== */
 .game-header {
-    background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
-    padding: 20px;
     text-align: center;
-    border-bottom: 3px solid #ff0064;
-    position: relative;
+    margin-bottom: 20px;
 }
 
 .game-title {
-    font-size: 3em;
-    color: #ff0064;
-    text-shadow: 0 0 20px #ff0064, 0 0 40px #ff0064;
-    letter-spacing: 8px;
+    font-size: 2.5rem;
     font-weight: bold;
-    margin: 0;
-    animation: titleGlow 2s ease-in-out infinite;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes titleGlow {
-    0%, 100% {
-        text-shadow: 0 0 20px #ff0064, 0 0 40px #ff0064;
-    }
-    50% {
-        text-shadow: 0 0 30px #ff0064, 0 0 60px #ff0064, 0 0 80px #ff00ff;
-    }
-}
-
-.round-info {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    background: rgba(255, 0, 100, 0.2);
-    border: 2px solid #ff0064;
-    padding: 8px 16px;
-    border-radius: 5px;
-}
-
-.round-text {
-    color: #ff0064;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-/* ===== ストリートファイター風バトルエリア ===== */
-.vs-arena {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 10px;
-    padding: 30px;
-    background: linear-gradient(180deg, rgba(255, 0, 100, 0.05) 0%, rgba(0, 255, 200, 0.05) 100%);
-    position: relative;
-    min-height: 450px;
-}
-
-/* フェーダー背景エフェクト */
-.vs-arena::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(255, 0, 100, 0.03) 0px,
-        rgba(255, 0, 100, 0.03) 1px,
-        transparent 1px,
-        transparent 2px
-    );
-    pointer-events: none;
-    z-index: 1;
-    animation: scan 8s linear infinite;
-}
-
-@keyframes scan {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(10px); }
-}
-
-/* ===== ファイターコンテナ ===== */
-.fighter-container {
+.game-info {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    z-index: 2;
-}
-
-.fighter-card {
-    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 35, 0.8));
-    border: 2px solid;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    min-width: 280px;
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease;
-}
-
-.left-fighter .fighter-card {
-    border-color: #ff0064;
-    box-shadow: 0 0 20px rgba(255, 0, 100, 0.3), inset 0 0 20px rgba(255, 0, 100, 0.1);
-}
-
-.right-fighter .fighter-card {
-    border-color: #00ffff;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
-}
-
-/* ===== ファイター情報 ===== */
-.fighter-name-plate {
+    justify-content: space-around;
     margin-bottom: 15px;
-    border-bottom: 2px solid;
-    padding-bottom: 10px;
-}
-
-.left-fighter .fighter-name-plate {
-    border-bottom-color: #ff0064;
-}
-
-.right-fighter .fighter-name-plate {
-    border-bottom-color: #00ffff;
-}
-
-.fighter-name {
-    font-size: 2em;
-    font-weight: bold;
-    margin: 0;
-    letter-spacing: 2px;
-}
-
-.left-fighter .fighter-name {
-    color: #ff0064;
-}
-
-.right-fighter .fighter-name {
-    color: #00ffff;
-}
-
-.fighter-title {
-    display: block;
-    font-size: 0.8em;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 5px;
-}
-
-/* ===== キャラクターアバター ===== */
-.character-display {
-    margin: 20px 0;
-}
-
-.character-avatar {
-    font-size: 5em;
-    display: inline-block;
-    filter: drop-shadow(0 0 10px currentColor);
-    animation: characterBounce 2s ease-in-out infinite;
-}
-
-.player-avatar {
-    color: #ff0064;
-}
-
-.bot-avatar {
-    color: #00ffff;
-}
-
-@keyframes characterBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* ===== ヘルス・エネルギーバー ===== */
-.health-info {
-    margin-top: 15px;
-}
-
-.health-label,
-.energy-label {
-    display: block;
-    font-size: 0.75em;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-top: 8px;
-    margin-bottom: 4px;
-}
-
-.left-fighter .health-label,
-.left-fighter .energy-label {
-    color: #ff9999;
-}
-
-.right-fighter .health-label,
-.right-fighter .energy-label {
-    color: #99ffff;
-}
-
-.health-bar-container,
-.energy-bar-container {
-    position: relative;
-    height: 30px;
-    background: #1a1a1a;
-    border: 2px solid;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 3px;
-}
-
-.left-fighter .health-bar-container,
-.left-fighter .energy-bar-container {
-    border-color: #ff0064;
-}
-
-.right-fighter .health-bar-container,
-.right-fighter .energy-bar-container {
-    border-color: #00ffff;
-}
-
-.health-bar {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #ff0000, #ff6666);
-    position: relative;
-}
-
-.energy-bar {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #00d4ff, #00ffff);
-    position: relative;
-}
-
-.health-bar-fill,
-.energy-bar-fill {
-    height: 100%;
-    width: 100%;
-    background: inherit;
-    transition: width 0.5s ease;
-    position: relative;
-}
-
-.health-bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: barShine 2s infinite;
-}
-
-.energy-bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: barShine 2s infinite;
-}
-
-@keyframes barShine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-.health-text,
-.energy-text {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: bold;
-    font-size: 0.9em;
-    color: white;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
-    z-index: 10;
-}
-
-/* ===== VS エリア（中央） ===== */
-.center-arena {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    min-width: 180px;
-    position: relative;
-    z-index: 2;
-}
-
-.vs-text {
-    font-size: 2.5em;
-    font-weight: bold;
-    color: #ff00ff;
-    text-shadow: 0 0 20px #ff00ff;
-    letter-spacing: 4px;
-    animation: vsPulse 1s ease-in-out infinite;
-}
-
-@keyframes vsPulse {
-    0%, 100% {
-        transform: scale(1);
-        text-shadow: 0 0 20px #ff00ff;
-    }
-    50% {
-        transform: scale(1.2);
-        text-shadow: 0 0 40px #ff00ff, 0 0 60px #ff0064;
-    }
-}
-
-.battle-display-area {
-    background: rgba(20, 20, 35, 0.9);
-    border: 2px solid #ff00ff;
-    border-radius: 8px;
-    padding: 15px;
-    min-width: 170px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-}
-
-.turn-indicator {
-    text-align: center;
-    margin-bottom: 12px;
-    font-weight: bold;
-    color: #00ffff;
-}
-
-.turn-label {
-    display: block;
-    font-size: 0.7em;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-}
-
-.turn-number {
-    display: block;
-    font-size: 1.8em;
-    color: #00ffff;
-    text-shadow: 0 0 10px #00ffff;
-}
-
-.battle-message {
-    text-align: center;
-    color: #ffffff;
-    font-size: 1.1em;
-    font-weight: bold;
-    margin-bottom: 12px;
-    min-height: 30px;
-    animation: messageAppear 0.5s ease;
-}
-
-@keyframes messageAppear {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.action-log {
-    font-size: 0.85em;
-    line-height: 1.6;
-}
-
-.log-entry {
-    padding: 5px;
-    border-radius: 4px;
-    margin: 3px 0;
-    min-height: 20px;
-}
-
-.player-log {
-    text-align: left;
-    color: #ffcccc;
-    border-left: 3px solid #ff0064;
-    padding-left: 8px;
-}
-
-.bot-log {
-    text-align: right;
-    color: #ccffff;
-    border-right: 3px solid #00ffff;
-    padding-right: 8px;
-}
-
-/* ===== アクションセレクター ===== */
-.action-selector {
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(15, 15, 30, 0.9));
-    padding: 30px;
-    border-top: 3px solid #ff0064;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
     gap: 20px;
 }
 
-.action-prompt {
-    color: #00ffff;
-    font-size: 1.2em;
-    font-weight: bold;
-    letter-spacing: 2px;
+.info-section {
+    flex: 1;
     text-align: center;
 }
 
-.loading-dots {
-    display: inline-block;
-    margin-left: 10px;
+.info-label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: #aaa;
 }
 
-.loading-dots span {
-    animation: dotBlink 1.4s infinite;
-}
-
-.loading-dots span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.loading-dots span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes dotBlink {
-    0%, 60%, 100% { opacity: 0.3; }
-    30% { opacity: 1; }
-}
-
-.command-buttons {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-    width: 100%;
-    max-width: 600px;
-    justify-content: center;
-}
-
-.action-button {
+.health-display {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 20px 15px;
-    border: 3px solid;
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 35, 0.8));
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
+    gap: 10px;
 }
 
-.action-button::before {
+.health-bar-small {
+    flex: 1;
+    height: 20px;
+    background: #333;
+    border: 2px solid #ff6b6b;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.health-bar-small::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.5s;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ff9999);
+    transition: width 0.3s ease;
 }
 
-.action-button:hover:not(:disabled)::before {
-    transform: translateX(100%);
+#playerHealthBar::after {
+    width: 100%;
 }
 
-.action-button:hover:not(:disabled) {
-    transform: scale(1.08) translateY(-5px);
+#botHealthBar::after {
+    width: 100%;
 }
 
-.action-button:active:not(:disabled) {
-    transform: scale(1.04) translateY(-2px);
+.health-display > span {
+    font-size: 0.85rem;
+    color: #fff;
+    min-width: 40px;
 }
 
-.action-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+canvas {
+    display: block;
+    margin: 0 auto 20px;
+    background: linear-gradient(180deg, #2a5298 0%, #1a1a2a 100%);
+    border: 3px solid #ff6b6b;
+    border-radius: 10px;
+    width: 100%;
+    height: auto;
+    max-width: 800px;
 }
 
-.btn-icon {
-    font-size: 2.5em;
-    filter: drop-shadow(0 0 5px currentColor);
+.controls-guide {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
-.btn-label {
-    font-size: 1em;
+.controls-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #ffd93d;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.control-item:last-child {
+    border-bottom: none;
+}
+
+.key {
+    background: #ff6b6b;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 5px;
     font-weight: bold;
+    font-size: 0.85rem;
+    min-width: 60px;
+    text-align: center;
 }
 
-.btn-desc {
-    font-size: 0.7em;
-    color: #aaa;
-    font-weight: normal;
-}
-
-.btn-cost {
-    font-size: 0.75em;
-    font-weight: bold;
-    margin-top: 3px;
-}
-
-/* ===== アタックボタン ===== */
-.attack-btn {
-    border-color: #ff0064;
-    color: #ff0064;
-}
-
-.attack-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(255, 0, 100, 0.3), rgba(255, 0, 100, 0.1));
-    box-shadow: 0 0 20px rgba(255, 0, 100, 0.5);
-    text-shadow: 0 0 10px #ff0064;
-}
-
-.attack-btn.active {
-    background: linear-gradient(135deg, rgba(255, 0, 100, 0.5), rgba(255, 0, 100, 0.2));
-    box-shadow: 0 0 30px rgba(255, 0, 100, 0.8), inset 0 0 15px rgba(255, 0, 100, 0.2);
-}
-
-/* ===== ディフェンスボタン ===== */
-.defense-btn {
-    border-color: #00ffff;
-    color: #00ffff;
-}
-
-.defense-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 255, 0.1));
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-    text-shadow: 0 0 10px #00ffff;
-}
-
-.defense-btn.active {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(0, 255, 255, 0.2));
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), inset 0 0 15px rgba(0, 255, 255, 0.2);
-}
-
-/* ===== チャージボタン ===== */
-.charge-btn {
-    border-color: #ffff00;
-    color: #ffff00;
-}
-
-.charge-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(255, 255, 0, 0.3), rgba(255, 255, 0, 0.1));
-    box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
-    text-shadow: 0 0 10px #ffff00;
-}
-
-.charge-btn.active {
-    background: linear-gradient(135deg, rgba(255, 255, 0, 0.5), rgba(255, 255, 0, 0.2));
-    box-shadow: 0 0 30px rgba(255, 255, 0, 0.8), inset 0 0 15px rgba(255, 255, 0, 0.2);
-}
-
-/* ===== ゲーム終了モーダル ===== */
-.game-over-modal {
+.modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 1000;
 }
 
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-}
-
-.modal-card {
-    position: relative;
-    z-index: 2001;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
-    border: 3px solid #ff0064;
-    border-radius: 10px;
+.modal-content {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border: 2px solid #ff6b6b;
+    border-radius: 15px;
     padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
     max-width: 500px;
-    box-shadow: 0 0 40px rgba(255, 0, 100, 0.5);
-    animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.5) translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+.modal-content h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #ffd93d;
 }
 
-.modal-header {
-    font-size: 2.5em;
-    text-align: center;
-    color: #ff0064;
-    text-shadow: 0 0 20px #ff0064;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-}
-
-.modal-body {
-    text-align: center;
+.modal-content p {
+    font-size: 1.1rem;
     margin-bottom: 30px;
+    color: #ddd;
 }
 
-.modal-message {
-    font-size: 1.3em;
-    color: #ffffff;
-    margin-bottom: 20px;
-}
-
-.game-stats {
-    background: rgba(255, 0, 100, 0.1);
-    border: 2px solid #ff0064;
-    border-radius: 5px;
-    padding: 15px;
-    margin-top: 15px;
-}
-
-.stat-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    color: #ffffff;
-    border-bottom: 1px solid rgba(255, 0, 100, 0.2);
-}
-
-.stat-line:last-child {
-    border-bottom: none;
-}
-
-.stat-name {
-    font-weight: bold;
-    color: #ffcccc;
-}
-
-.stat-value {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #ff0064;
-    text-shadow: 0 0 10px #ff0064;
-}
-
-.modal-footer {
-    text-align: center;
-}
-
-.btn-restart {
-    padding: 15px 40px;
-    font-size: 1.1em;
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #ff0064 0%, #ff3399 100%);
+.modal-content button {
+    background: linear-gradient(45deg, #ff6b6b, #ff9999);
     color: white;
-    border: 2px solid #ff0064;
-    border-radius: 5px;
+    border: none;
+    padding: 12px 40px;
+    font-size: 1rem;
+    border-radius: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 20px rgba(255, 0, 100, 0.3);
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.btn-restart:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 30px rgba(255, 0, 100, 0.6);
+.modal-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
 }
 
-.btn-restart:active {
-    transform: scale(1.02);
-}
-
-/* ===== レスポンシブ ===== */
-@media (max-width: 1024px) {
-    .vs-arena {
-        grid-template-columns: 1fr;
-        padding: 20px;
-        min-height: auto;
-    }
-
-    .fighter-card {
-        min-width: auto;
-        width: 100%;
-    }
-
-    .command-buttons {
-        max-width: 100%;
-    }
+.status-info {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-top: 10px;
 }
 
 @media (max-width: 768px) {
-    .game-title {
-        font-size: 2em;
-    }
-
-    .character-avatar {
-        font-size: 3.5em;
-    }
-
-    .fighter-card {
+    .game-container {
         padding: 15px;
-        min-width: 250px;
     }
 
-    .action-selector {
-        padding: 20px;
-        min-height: auto;
+    .game-title {
+        font-size: 1.8rem;
     }
 
-    .command-buttons {
-        grid-template-columns: 1fr;
-        gap: 12px;
+    .game-info {
+        flex-direction: column;
+        gap: 10px;
     }
 
-    .modal-card {
+    canvas {
+        margin-bottom: 15px;
+    }
+
+    .controls-guide {
+        padding: 10px;
+    }
+
+    .modal-content {
         padding: 30px 20px;
         margin: 20px;
     }
 }
 
-@media (max-width: 480px) {
-    .vs-arena {
-        padding: 15px;
-    }
+/* ヘルスバーのカスタムプロパティ対応 */
+:root {
+    --health: 100%;
+}
 
-    .fighter-card {
-        min-width: 100%;
-    }
+#playerHealthBar,
+#botHealthBar {
+    --health: 100%;
+}
 
-    .center-arena {
-        min-width: 100%;
-        gap: 10px;
-    }
-
-    .health-bar-container,
-    .energy-bar-container {
-        height: 24px;
-    }
-
-    .health-text,
-    .energy-text {
-        font-size: 0.8em;
-    }
+#playerHealthBar::after,
+#botHealthBar::after {
+    width: var(--health) !important;
 }
