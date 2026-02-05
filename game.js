@@ -33,7 +33,8 @@ class Character {
         this.isJumping = false;
         this.isAttacking = false;
         this.attackCooldown = 0;
-        this.attackDirection = 1; // 1 = right, -1 = left
+        this.facingDirection = isPlayer ? 1 : -1; // 1 = right, -1 = left（向き）
+        this.attackDirection = 1; // 攻撃する方向
         
         this.lastAttackTime = 0;
         
@@ -49,6 +50,14 @@ class Character {
             this.vy = 0;
             this.isJumping = false;
         }
+        
+        // 移動前に向きを更新
+        if (this.vx > 0) {
+            this.facingDirection = 1; // 右に移動
+        } else if (this.vx < 0) {
+            this.facingDirection = -1; // 左に移動
+        }
+        // vx === 0の場合は向きを変えない
         
         // 移動
         this.x += this.vx;
@@ -100,7 +109,8 @@ class Character {
         if (this.attackCooldown > 0) return false;
         
         this.isAttacking = true;
-        this.attackDirection = targetX > this.x ? 1 : -1;
+        // 攻撃方向を向いている方向に設定
+        this.attackDirection = this.facingDirection;
         this.attackCooldown = ATTACK_COOLDOWN;
         return true;
     }
@@ -143,6 +153,58 @@ class Character {
         this.isJumping = false;
         this.isAttacking = false;
         this.attackCooldown = 0;
+        this.facingDirection = this.isPlayer ? 1 : -1;
+    }
+    
+    // 衝突判定ボックスを取得
+    getBounds() {
+        return {
+            left: this.x - this.width / 2,
+            right: this.x + this.width / 2,
+            top: this.y - this.height / 2,
+            bottom: this.y + this.height / 2
+        };
+    }
+    
+    // 別のキャラクターとの衝突判定
+    isCollidingWith(other) {
+        const bounds1 = this.getBounds();
+        const bounds2 = other.getBounds();
+        
+        return !(bounds1.right < bounds2.left || 
+                 bounds1.left > bounds2.right || 
+                 bounds1.bottom < bounds2.top || 
+                 bounds1.top > bounds2.bottom);
+    }
+    
+    // 衝突応答（互いに押し返す）
+    resolveCollision(other) {
+        const bounds1 = this.getBounds();
+        const bounds2 = other.getBounds();
+        
+        // 重なり量を計算
+        const overlapLeft = bounds1.right - bounds2.left;
+        const overlapRight = bounds2.right - bounds1.left;
+        const overlapTop = bounds1.bottom - bounds2.top;
+        const overlapBottom = bounds2.bottom - bounds1.top;
+        
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+        
+        // 水平方向への衝突対応
+        if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+            if (minOverlap === overlapLeft) {
+                // このキャラが左から衝突
+                this.x -= overlapLeft / 2;
+                other.x += overlapLeft / 2;
+            } else {
+                // このキャラが右から衝突
+                this.x += overlapRight / 2;
+                other.x -= overlapRight / 2;
+            }
+            // 水平速度をリセット（押し返される）
+            this.vx = 0;
+            other.vx = 0;
+        }
     }
 }
 
@@ -313,6 +375,11 @@ class DukshiGame {
         this.player.update();
         this.bot.update();
         
+        // キャラクター間の衝突判定と応答
+        if (this.player.isCollidingWith(this.bot)) {
+            this.player.resolveCollision(this.bot);
+        }
+        
         // AI更新
         this.ai.update(this.player);
         
@@ -334,17 +401,31 @@ class DukshiGame {
     checkAttackCollisions() {
         const distance = this.player.getDistance(this.bot);
         
-        // プレイヤーの攻撃判定
+        // プレイヤーの攻撃判定（一方向のみ）
         if (this.player.isAttacking && this.player.attackCooldown === ATTACK_COOLDOWN) {
             if (distance < ATTACK_RANGE) {
-                this.bot.takeDamage(ATTACK_DAMAGE);
+                // 攻撃方向にボットがいるかチェック
+                const botIsInFront = 
+                    (this.player.attackDirection === 1 && this.bot.x > this.player.x) ||
+                    (this.player.attackDirection === -1 && this.bot.x < this.player.x);
+                
+                if (botIsInFront) {
+                    this.bot.takeDamage(ATTACK_DAMAGE);
+                }
             }
         }
         
-        // ボットの攻撃判定
+        // ボットの攻撃判定（一方向のみ）
         if (this.bot.isAttacking && this.bot.attackCooldown === ATTACK_COOLDOWN) {
             if (distance < ATTACK_RANGE) {
-                this.player.takeDamage(ATTACK_DAMAGE);
+                // 攻撃方向にプレイヤーがいるかチェック
+                const playerIsInFront = 
+                    (this.bot.attackDirection === 1 && this.player.x > this.bot.x) ||
+                    (this.bot.attackDirection === -1 && this.player.x < this.bot.x);
+                
+                if (playerIsInFront) {
+                    this.player.takeDamage(ATTACK_DAMAGE);
+                }
             }
         }
     }
@@ -369,19 +450,30 @@ class DukshiGame {
         this.player.draw(this.ctx);
         this.bot.draw(this.ctx);
         
-        // 攻撃範囲の視覚化（デバッグ）
+        // 攻撃範囲の視覚化（デバッグ - 一方向表示）
         if (this.player.isAttacking) {
             this.ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+            this.ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
             this.ctx.lineWidth = 2;
-            this.ctx.arc(this.player.x, this.player.y, ATTACK_RANGE, 0, Math.PI * 2);
+            this.ctx.beginPath();
+            const startAngle = this.player.attackDirection === 1 ? -Math.PI / 4 : Math.PI + Math.PI / 4;
+            const endAngle = this.player.attackDirection === 1 ? Math.PI / 4 : Math.PI - Math.PI / 4;
+            this.ctx.arc(this.player.x, this.player.y, ATTACK_RANGE, startAngle, endAngle);
+            this.ctx.lineTo(this.player.x, this.player.y);
+            this.ctx.fill();
             this.ctx.stroke();
         }
         
         if (this.bot.isAttacking) {
             this.ctx.strokeStyle = 'rgba(100, 100, 255, 0.5)';
+            this.ctx.fillStyle = 'rgba(100, 100, 255, 0.2)';
             this.ctx.lineWidth = 2;
             this.ctx.beginPath();
-            this.ctx.arc(this.bot.x, this.bot.y, ATTACK_RANGE, 0, Math.PI * 2);
+            const startAngle = this.bot.attackDirection === 1 ? -Math.PI / 4 : Math.PI + Math.PI / 4;
+            const endAngle = this.bot.attackDirection === 1 ? Math.PI / 4 : Math.PI - Math.PI / 4;
+            this.ctx.arc(this.bot.x, this.bot.y, ATTACK_RANGE, startAngle, endAngle);
+            this.ctx.lineTo(this.bot.x, this.bot.y);
+            this.ctx.fill();
             this.ctx.stroke();
         }
     }
