@@ -9,95 +9,153 @@
 <body>
     <div class="game-container">
         <!-- ゲームタイトル -->
-        <h1 class="game-title">デュクシ</h1>
-        
-        <!-- ゲーム状態表示 -->
-        <div class="status-bar">
-            <div class="game-status" id="gameStatus">準備中...</div>
-        </div>
+        <header class="game-header">
+            <h1 class="game-title">⚔️ デュクシ ⚔️</h1>
+            <div class="round-info">
+                <span class="round-text">ROUND <span id="roundNumber">1</span></span>
+            </div>
+        </header>
 
-        <!-- プレイヤーエリア -->
-        <div class="battle-arena">
-            <!-- プレイヤー左側（人間） -->
-            <div class="player-side player-human">
-                <h2>YOU</h2>
-                <div class="player-stats">
-                    <div class="stat-box">
-                        <span class="stat-label">ライフ</span>
-                        <div class="life-bar">
-                            <div class="life-fill" id="playerlife"></div>
-                        </div>
-                        <span class="stat-value" id="playerLifeValue">3/3</span>
+        <!-- 戦闘アリーナ -->
+        <div class="vs-arena">
+            <!-- プレイヤー左側（YOU） -->
+            <div class="fighter-container left-fighter">
+                <div class="fighter-card">
+                    <div class="fighter-name-plate">
+                        <h2 class="fighter-name">YOU</h2>
+                        <span class="fighter-title">プレイヤー</span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">MP</span>
-                        <div class="mp-bar">
-                            <div class="mp-fill" id="playerMp"></div>
+
+                    <div class="character-display">
+                        <div class="character-avatar player-avatar">🥋</div>
+                    </div>
+
+                    <!-- ショートネーム（スマートフォン対応） -->
+                    <div class="health-info">
+                        <div class="health-label">HEALTH</div>
+                        <div class="health-bar-container">
+                            <div class="health-bar">
+                                <div class="health-bar-fill" id="playerLife"></div>
+                            </div>
+                            <span class="health-text" id="playerLifeValue">3/3</span>
                         </div>
-                        <span class="stat-value" id="playerMpValue">3/3</span>
+
+                        <div class="energy-label">POWER</div>
+                        <div class="energy-bar-container">
+                            <div class="energy-bar">
+                                <div class="energy-bar-fill" id="playerMp"></div>
+                            </div>
+                            <span class="energy-text" id="playerMpValue">3/3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央 VS エリア -->
+            <div class="center-arena">
+                <div class="vs-text">VS</div>
+                
+                <!-- バトルログ -->
+                <div class="battle-display-area">
+                    <div class="turn-indicator">
+                        <span class="turn-label">TURN</span>
+                        <span class="turn-number" id="turnCounter">1</span>
+                    </div>
+                    
+                    <div class="battle-message" id="battleVisual">準備完了</div>
+                    
+                    <div class="action-log">
+                        <div class="log-entry player-log" id="playerActionLog">---</div>
+                        <div class="log-entry bot-log" id="botActionLog">---</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 中央戦闘ログ -->
-            <div class="battle-log-section">
-                <div class="battle-log" id="battleLog">
-                    <div class="log-message">ゲーム開始</div>
-                </div>
-                <div class="battle-visual" id="battleVisual">準備完了！</div>
-            </div>
-
-            <!-- プレイヤー右側（ボット） -->
-            <div class="player-side player-bot">
-                <h2>BOT</h2>
-                <div class="player-stats">
-                    <div class="stat-box">
-                        <span class="stat-label">ライフ</span>
-                        <div class="life-bar">
-                            <div class="life-fill" id="botLife"></div>
-                        </div>
-                        <span class="stat-value" id="botLifeValue">3/3</span>
+            <!-- プレイヤー右側（BOT） -->
+            <div class="fighter-container right-fighter">
+                <div class="fighter-card">
+                    <div class="fighter-name-plate">
+                        <h2 class="fighter-name">BOT</h2>
+                        <span class="fighter-title">AI対戦</span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">MP</span>
-                        <div class="mp-bar">
-                            <div class="mp-fill" id="botMp"></div>
+
+                    <div class="character-display">
+                        <div class="character-avatar bot-avatar">🤖</div>
+                    </div>
+
+                    <div class="health-info">
+                        <div class="health-label">HEALTH</div>
+                        <div class="health-bar-container">
+                            <div class="health-bar">
+                                <div class="health-bar-fill" id="botLife"></div>
+                            </div>
+                            <span class="health-text" id="botLifeValue">3/3</span>
                         </div>
-                        <span class="stat-value" id="botMpValue">3/3</span>
+
+                        <div class="energy-label">POWER</div>
+                        <div class="energy-bar-container">
+                            <div class="energy-bar">
+                                <div class="energy-bar-fill" id="botMp"></div>
+                            </div>
+                            <span class="energy-text" id="botMpValue">3/3</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- コマンド選択エリア -->
-        <div class="command-section" id="commandSection">
-            <p class="turn-info">ターン <span id="turnCounter">1</span></p>
-            <div class="command-buttons">
-                <button class="cmd-btn cmd-attack" id="cmdAttack" data-action="DUKSHI">
-                    <span class="cmd-icon">👊</span>
-                    <span class="cmd-name">デュクシ</span>
-                    <span class="cmd-cost">MP-1</span>
+        <!-- アクションセレクション -->
+        <div class="action-selector" id="commandSection">
+            <div class="action-prompt" id="waitingMessage" style="display: none;">
+                <span class="prompt-text">相手のアクションを待機中...</span>
+                <span class="loading-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </span>
+            </div>
+
+            <div class="command-buttons" id="buttonContainer">
+                <button class="action-button attack-btn" id="cmdAttack" data-action="DUKSHI">
+                    <div class="btn-icon">👊</div>
+                    <div class="btn-label">デュクシ</div>
+                    <div class="btn-desc">攻撃</div>
+                    <div class="btn-cost">MP-1</div>
                 </button>
-                <button class="cmd-btn cmd-defense" id="cmdDefense" data-action="BARRIER">
-                    <span class="cmd-icon">🛡️</span>
-                    <span class="cmd-name">バリア</span>
-                    <span class="cmd-cost">MP-1</span>
+
+                <button class="action-button defense-btn" id="cmdDefense" data-action="BARRIER">
+                    <div class="btn-icon">🛡️</div>
+                    <div class="btn-label">バリア</div>
+                    <div class="btn-desc">防御</div>
+                    <div class="btn-cost">MP-1</div>
                 </button>
-                <button class="cmd-btn cmd-charge" id="cmdCharge" data-action="CHARGE">
-                    <span class="cmd-icon">⚡</span>
-                    <span class="cmd-name">チャージ</span>
-                    <span class="cmd-cost">MP+1</span>
+
+                <button class="action-button charge-btn" id="cmdCharge" data-action="CHARGE">
+                    <div class="btn-icon">⚡</div>
+                    <div class="btn-label">チャージ</div>
+                    <div class="btn-desc">回復</div>
+                    <div class="btn-cost">MP+1</div>
                 </button>
             </div>
-            <p class="waiting-message" id="waitingMessage" style="display: none;">相手の選択を待機中...</p>
         </div>
 
-        <!-- ゲーム終了画面 -->
+        <!-- ゲーム終了モーダル -->
         <div class="game-over-modal" id="gameOverModal" style="display: none;">
-            <div class="modal-content">
-                <h2 id="gameOverTitle">ゲーム終了</h2>
-                <p id="gameOverMessage">ゲーム終了しました</p>
-                <button class="btn-restart" id="btnRestart">もう一度プレイ</button>
+            <div class="modal-overlay"></div>
+            <div class="modal-card">
+                <div class="modal-header" id="gameOverTitle">
+                    🎉 VICTORY! 🎉
+                </div>
+                <div class="modal-body">
+                    <p class="modal-message" id="gameOverMessage">ゲーム終了しました</p>
+                    <div class="game-stats">
+                        <div class="stat-line">
+                            <span class="stat-name">クリアターン数:</span>
+                            <span class="stat-value" id="clearTurns">1</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-restart" id="btnRestart">もう一度プレイ</button>
+                </div>
             </div>
         </div>
     </div>

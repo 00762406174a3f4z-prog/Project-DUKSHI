@@ -281,18 +281,20 @@ class DukshiGame {
      */
     initializeUI() {
         this.elements = {
-            gameStatus: document.getElementById('gameStatus'),
+            gameStatus: null,
+            roundNumber: document.getElementById('roundNumber'),
             playerLifeValue: document.getElementById('playerLifeValue'),
             playerMpValue: document.getElementById('playerMpValue'),
-            playerLife: document.getElementById('playerlife'),
+            playerLife: document.getElementById('playerLife'),
             playerMp: document.getElementById('playerMp'),
             botLifeValue: document.getElementById('botLifeValue'),
             botMpValue: document.getElementById('botMpValue'),
             botLife: document.getElementById('botLife'),
             botMp: document.getElementById('botMp'),
             turnCounter: document.getElementById('turnCounter'),
-            battleLog: document.getElementById('battleLog'),
             battleVisual: document.getElementById('battleVisual'),
+            playerActionLog: document.getElementById('playerActionLog'),
+            botActionLog: document.getElementById('botActionLog'),
             commandSection: document.getElementById('commandSection'),
             cmdAttack: document.getElementById('cmdAttack'),
             cmdDefense: document.getElementById('cmdDefense'),
@@ -301,7 +303,9 @@ class DukshiGame {
             gameOverTitle: document.getElementById('gameOverTitle'),
             gameOverMessage: document.getElementById('gameOverMessage'),
             btnRestart: document.getElementById('btnRestart'),
-            waitingMessage: document.getElementById('waitingMessage')
+            waitingMessage: document.getElementById('waitingMessage'),
+            clearTurns: document.getElementById('clearTurns'),
+            buttonContainer: document.getElementById('buttonContainer')
         };
 
         this.updateAllUI();
@@ -369,8 +373,6 @@ class DukshiGame {
             this.botStats.takeDamage(result.botDamage);
         }
 
-        // 復活効果はここでは不要（チャージはMP回復のみ）
-
         // ログ出力
         const actionNames = {
             DUKSHI: 'デュクシ',
@@ -378,16 +380,12 @@ class DukshiGame {
             CHARGE: 'チャージ'
         };
 
-        this.addBattleLog(`===ターン${this.turn}===`);
-        this.addBattleLog(`YOU: ${actionNames[this.playerAction]} | BOT: ${actionNames[this.botAction]}`);
-        this.addBattleLog(result.message);
-
-        if (result.playerDamage > 0) {
-            this.addBattleLog(`⚠ YOU がダメージを受けた！ (${result.playerDamage})`);
-        }
-        if (result.botDamage > 0) {
-            this.addBattleLog(`⚠ BOT がダメージを受けた！ (${result.botDamage})`);
-        }
+        // アクションログを更新
+        this.elements.playerActionLog.textContent = `YOU: ${actionNames[this.playerAction]}`;
+        this.elements.botActionLog.textContent = `BOT: ${actionNames[this.botAction]}`;
+        
+        // バトルビジュアル更新
+        this.elements.battleVisual.textContent = result.message;
 
         // UI更新
         this.updateAllUI();
@@ -421,13 +419,13 @@ class DukshiGame {
         this.elements.cmdCharge.disabled = true;
 
         if (playerWon) {
-            this.elements.gameOverTitle.textContent = '🎉 YOU WIN! 🎉';
-            this.elements.gameOverMessage.textContent = `${this.turn - 1}ターンで相手を倒しました！`;
-            this.addBattleLog('**YOU が勝利しました！**');
+            this.elements.gameOverTitle.textContent = '🎉 VICTORY! 🎉';
+            this.elements.gameOverMessage.textContent = `あなたが${this.turn - 1}ターンで相手を倒しました！`;
+            this.elements.clearTurns.textContent = this.turn - 1;
         } else {
             this.elements.gameOverTitle.textContent = '💔 GAME OVER 💔';
-            this.elements.gameOverMessage.textContent = `ボットが${this.turn - 1}ターンで勝利しました...`;
-            this.addBattleLog('**BOT が勝利しました...**');
+            this.elements.gameOverMessage.textContent = `ボットが${this.turn - 1}ターンであなたを倒しました...`;
+            this.elements.clearTurns.textContent = this.turn - 1;
         }
 
         this.elements.gameOverModal.style.display = 'flex';
@@ -446,8 +444,9 @@ class DukshiGame {
         this.botAction = null;
 
         this.elements.gameOverModal.style.display = 'none';
-        this.elements.battleLog.innerHTML = '<div class="log-message">ゲーム再開！</div>';
-        this.elements.battleVisual.textContent = '準備完了！';
+        this.elements.battleVisual.textContent = '準備完了';
+        this.elements.playerActionLog.textContent = '---';
+        this.elements.botActionLog.textContent = '---';
         this.elements.cmdAttack.disabled = false;
         this.elements.cmdDefense.disabled = false;
         this.elements.cmdCharge.disabled = false;
@@ -457,19 +456,18 @@ class DukshiGame {
     }
 
     /**
-     * バトルログノーを追加
+     * ゲーム開始
      */
-    addBattleLog(message) {
-        const logDiv = document.createElement('div');
-        logDiv.className = 'log-message';
-        logDiv.textContent = message;
-        this.elements.battleLog.appendChild(logDiv);
-        this.elements.battleLog.scrollTop = this.elements.battleLog.scrollHeight;
+    start() {
+        this.gameRunning = true;
+        this.updateAllUI();
     }
-
-    /**
-     * 全UIを更新
-     */
+}
+    start() {
+        this.gameRunning = true;
+        this.updateAllUI();
+    }
+}
     updateAllUI() {
         // プレイヤーステータス
         this.elements.playerLifeValue.textContent = `${this.playerStats.life}/${this.playerStats.maxLife}`;
@@ -483,17 +481,9 @@ class DukshiGame {
         this.elements.botLife.style.width = `${this.botStats.getLifePercentage()}%`;
         this.elements.botMp.style.width = `${this.botStats.getMpPercentage()}%`;
 
-        // ターン
+        // ターン・ラウンド
         this.elements.turnCounter.textContent = this.turn;
-
-        // ゲームステータス
-        if (!this.gameRunning) {
-            this.elements.gameStatus.textContent = 'ゲーム終了';
-        } else if (this.processedAction) {
-            this.elements.gameStatus.textContent = `相手の行動を待機中...`;
-        } else {
-            this.elements.gameStatus.textContent = `ターン ${this.turn}: アクションを選択してください`;
-        }
+        this.elements.roundNumber.textContent = 1; // 現在はラウンド1で固定
     }
 
     /**

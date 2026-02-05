@@ -1,4 +1,4 @@
-/* ===== 基本スタイル ===== */
+/* ===== リセット・基本スタイル ===== */
 * {
     margin: 0;
     padding: 0;
@@ -7,429 +7,790 @@
 
 body {
     font-family: 'Arial', 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
 }
 
 .game-container {
     width: 100%;
-    max-width: 1200px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ===== タイトル ===== */
-.game-title {
-    text-align: center;
-    padding: 25px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-size: 2.5em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    letter-spacing: 3px;
-}
-
-/* ===== ステータスバー ===== */
-.status-bar {
-    background: #f5f5f5;
-    padding: 15px;
-    text-align: center;
-    border-bottom: 1px solid #eee;
-}
-
-.game-status {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #333;
-}
-
-/* ===== バトルアリーナ ===== */
-.battle-arena {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 20px;
-    padding: 30px;
-    flex: 1;
-    align-items: center;
-}
-
-.player-side {
-    background: #f9f9f9;
+    max-width: 1400px;
+    background: #0a0a0f;
     border-radius: 10px;
+    box-shadow: 0 0 40px rgba(255, 0, 100, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #ff0064;
+}
+
+/* ===== ゲームヘッダー ===== */
+.game-header {
+    background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
     padding: 20px;
-    border: 2px solid #ddd;
     text-align: center;
+    border-bottom: 3px solid #ff0064;
+    position: relative;
 }
 
-.player-side h2 {
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 1.8em;
-}
-
-.player-human {
-    border-color: #667eea;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(102, 126, 234, 0.1) 100%);
-}
-
-.player-bot {
-    border-color: #764ba2;
-    background: linear-gradient(135deg, rgba(118, 75, 162, 0.05) 0%, rgba(118, 75, 162, 0.1) 100%);
-}
-
-/* ===== プレイヤーステータス ===== */
-.player-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.stat-label {
+.game-title {
+    font-size: 3em;
+    color: #ff0064;
+    text-shadow: 0 0 20px #ff0064, 0 0 40px #ff0064;
+    letter-spacing: 8px;
     font-weight: bold;
-    font-size: 0.9em;
-    color: #666;
+    margin: 0;
+    animation: titleGlow 2s ease-in-out infinite;
 }
 
-.life-bar {
-    width: 100%;
-    height: 25px;
-    background: #e0e0e0;
+@keyframes titleGlow {
+    0%, 100% {
+        text-shadow: 0 0 20px #ff0064, 0 0 40px #ff0064;
+    }
+    50% {
+        text-shadow: 0 0 30px #ff0064, 0 0 60px #ff0064, 0 0 80px #ff00ff;
+    }
+}
+
+.round-info {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: rgba(255, 0, 100, 0.2);
+    border: 2px solid #ff0064;
+    padding: 8px 16px;
     border-radius: 5px;
-    overflow: hidden;
-    border: 1px solid #999;
 }
 
-.life-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #ff6b6b, #ff8787);
-    width: 100%;
-    transition: width 0.4s ease;
-}
-
-.mp-bar {
-    width: 100%;
-    height: 20px;
-    background: #e0e0e0;
-    border-radius: 5px;
-    overflow: hidden;
-    border: 1px solid #999;
-}
-
-.mp-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4ecdc4, #45b7aa);
-    width: 100%;
-    transition: width 0.4s ease;
-}
-
-.stat-value {
-    font-size: 0.85em;
-    color: #666;
+.round-text {
+    color: #ff0064;
     font-weight: bold;
+    letter-spacing: 2px;
 }
 
-/* ===== バトルログセクション ===== */
-.battle-log-section {
+/* ===== ストリートファイター風バトルエリア ===== */
+.vs-arena {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    padding: 30px;
+    background: linear-gradient(180deg, rgba(255, 0, 100, 0.05) 0%, rgba(0, 255, 200, 0.05) 100%);
+    position: relative;
+    min-height: 450px;
+}
+
+/* フェーダー背景エフェクト */
+.vs-arena::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 0, 100, 0.03) 0px,
+        rgba(255, 0, 100, 0.03) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 1;
+    animation: scan 8s linear infinite;
+}
+
+@keyframes scan {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(10px); }
+}
+
+/* ===== ファイターコンテナ ===== */
+.fighter-container {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
-.battle-log {
-    background: #1e1e1e;
-    color: #00ff00;
-    padding: 15px;
+.fighter-card {
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 35, 0.8));
+    border: 2px solid;
     border-radius: 8px;
-    font-family: 'Courier New', monospace;
+    padding: 20px;
+    text-align: center;
+    min-width: 280px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+}
+
+.left-fighter .fighter-card {
+    border-color: #ff0064;
+    box-shadow: 0 0 20px rgba(255, 0, 100, 0.3), inset 0 0 20px rgba(255, 0, 100, 0.1);
+}
+
+.right-fighter .fighter-card {
+    border-color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+/* ===== ファイター情報 ===== */
+.fighter-name-plate {
+    margin-bottom: 15px;
+    border-bottom: 2px solid;
+    padding-bottom: 10px;
+}
+
+.left-fighter .fighter-name-plate {
+    border-bottom-color: #ff0064;
+}
+
+.right-fighter .fighter-name-plate {
+    border-bottom-color: #00ffff;
+}
+
+.fighter-name {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.left-fighter .fighter-name {
+    color: #ff0064;
+}
+
+.right-fighter .fighter-name {
+    color: #00ffff;
+}
+
+.fighter-title {
+    display: block;
+    font-size: 0.8em;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 5px;
+}
+
+/* ===== キャラクターアバター ===== */
+.character-display {
+    margin: 20px 0;
+}
+
+.character-avatar {
+    font-size: 5em;
+    display: inline-block;
+    filter: drop-shadow(0 0 10px currentColor);
+    animation: characterBounce 2s ease-in-out infinite;
+}
+
+.player-avatar {
+    color: #ff0064;
+}
+
+.bot-avatar {
+    color: #00ffff;
+}
+
+@keyframes characterBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* ===== ヘルス・エネルギーバー ===== */
+.health-info {
+    margin-top: 15px;
+}
+
+.health-label,
+.energy-label {
+    display: block;
+    font-size: 0.75em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.left-fighter .health-label,
+.left-fighter .energy-label {
+    color: #ff9999;
+}
+
+.right-fighter .health-label,
+.right-fighter .energy-label {
+    color: #99ffff;
+}
+
+.health-bar-container,
+.energy-bar-container {
+    position: relative;
+    height: 30px;
+    background: #1a1a1a;
+    border: 2px solid;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 3px;
+}
+
+.left-fighter .health-bar-container,
+.left-fighter .energy-bar-container {
+    border-color: #ff0064;
+}
+
+.right-fighter .health-bar-container,
+.right-fighter .energy-bar-container {
+    border-color: #00ffff;
+}
+
+.health-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff0000, #ff6666);
+    position: relative;
+}
+
+.energy-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #00d4ff, #00ffff);
+    position: relative;
+}
+
+.health-bar-fill,
+.energy-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: inherit;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.health-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: barShine 2s infinite;
+}
+
+.energy-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: barShine 2s infinite;
+}
+
+@keyframes barShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.health-text,
+.energy-text {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
     font-size: 0.9em;
-    height: 120px;
-    overflow-y: auto;
-    border: 2px solid #00ff00;
-    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+    color: white;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    z-index: 10;
 }
 
-.log-message {
-    margin: 5px 0;
-    animation: slideIn 0.3s ease;
+/* ===== VS エリア（中央） ===== */
+.center-arena {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    min-width: 180px;
+    position: relative;
+    z-index: 2;
 }
 
-@keyframes slideIn {
+.vs-text {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #ff00ff;
+    text-shadow: 0 0 20px #ff00ff;
+    letter-spacing: 4px;
+    animation: vsPulse 1s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 20px #ff00ff;
+    }
+    50% {
+        transform: scale(1.2);
+        text-shadow: 0 0 40px #ff00ff, 0 0 60px #ff0064;
+    }
+}
+
+.battle-display-area {
+    background: rgba(20, 20, 35, 0.9);
+    border: 2px solid #ff00ff;
+    border-radius: 8px;
+    padding: 15px;
+    min-width: 170px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+}
+
+.turn-indicator {
+    text-align: center;
+    margin-bottom: 12px;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.turn-label {
+    display: block;
+    font-size: 0.7em;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+.turn-number {
+    display: block;
+    font-size: 1.8em;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.battle-message {
+    text-align: center;
+    color: #ffffff;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 12px;
+    min-height: 30px;
+    animation: messageAppear 0.5s ease;
+}
+
+@keyframes messageAppear {
     from {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: scale(0.8);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: scale(1);
     }
 }
 
-.battle-visual {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #667eea;
-    text-align: center;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.action-log {
+    font-size: 0.85em;
+    line-height: 1.6;
 }
 
-.battle-visual.attack {
-    color: #ff6b6b;
-    animation: shake 0.3s ease;
+.log-entry {
+    padding: 5px;
+    border-radius: 4px;
+    margin: 3px 0;
+    min-height: 20px;
 }
 
-.battle-visual.defense {
-    color: #4ecdc4;
-    animation: shield 0.3s ease;
+.player-log {
+    text-align: left;
+    color: #ffcccc;
+    border-left: 3px solid #ff0064;
+    padding-left: 8px;
 }
 
-.battle-visual.charge {
-    color: #ffd93d;
-    animation: pulse 0.3s ease;
+.bot-log {
+    text-align: right;
+    color: #ccffff;
+    border-right: 3px solid #00ffff;
+    padding-right: 8px;
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-
-@keyframes shield {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-}
-
-/* ===== コマンドセクション ===== */
-.command-section {
-    background: #f5f5f5;
+/* ===== アクションセレクター ===== */
+.action-selector {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(15, 15, 30, 0.9));
     padding: 30px;
-    border-top: 2px solid #eee;
+    border-top: 3px solid #ff0064;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
 }
 
-.turn-info {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.1em;
-    color: #666;
+.action-prompt {
+    color: #00ffff;
+    font-size: 1.2em;
     font-weight: bold;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.loading-dots {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.loading-dots span {
+    animation: dotBlink 1.4s infinite;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotBlink {
+    0%, 60%, 100% { opacity: 0.3; }
+    30% { opacity: 1; }
 }
 
 .command-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 15px;
-    margin-bottom: 15px;
+    width: 100%;
+    max-width: 600px;
+    justify-content: center;
 }
 
-.cmd-btn {
+.action-button {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 20px 15px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    background: white;
+    border: 3px solid;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 35, 0.8));
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.95em;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
 }
 
-.cmd-btn:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+.action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
 }
 
-.cmd-btn:active:not(:disabled) {
-    transform: translateY(-1px);
+.action-button:hover:not(:disabled)::before {
+    transform: translateX(100%);
 }
 
-.cmd-btn:disabled {
-    opacity: 0.5;
+.action-button:hover:not(:disabled) {
+    transform: scale(1.08) translateY(-5px);
+}
+
+.action-button:active:not(:disabled) {
+    transform: scale(1.04) translateY(-2px);
+}
+
+.action-button:disabled {
+    opacity: 0.4;
     cursor: not-allowed;
-    background: #eee;
 }
 
-.cmd-icon {
-    font-size: 2em;
+.btn-icon {
+    font-size: 2.5em;
+    filter: drop-shadow(0 0 5px currentColor);
 }
 
-.cmd-name {
-    color: #333;
-}
-
-.cmd-cost {
-    font-size: 0.8em;
-    color: #999;
-}
-
-.cmd-attack {
-    border-color: #ff6b6b;
-}
-
-.cmd-attack:hover:not(:disabled) {
-    background: rgba(255, 107, 107, 0.1);
-    border-color: #ff5252;
-}
-
-.cmd-attack.active {
-    background: rgba(255, 107, 107, 0.3);
-    border-color: #ff5252;
-}
-
-.cmd-defense {
-    border-color: #4ecdc4;
-}
-
-.cmd-defense:hover:not(:disabled) {
-    background: rgba(78, 205, 196, 0.1);
-    border-color: #3dbbb0;
-}
-
-.cmd-defense.active {
-    background: rgba(78, 205, 196, 0.3);
-    border-color: #3dbbb0;
-}
-
-.cmd-charge {
-    border-color: #ffd93d;
-}
-
-.cmd-charge:hover:not(:disabled) {
-    background: rgba(255, 217, 61, 0.1);
-    border-color: #ffc400;
-}
-
-.cmd-charge.active {
-    background: rgba(255, 217, 61, 0.3);
-    border-color: #ffc400;
-}
-
-.waiting-message {
-    text-align: center;
-    color: #667eea;
+.btn-label {
+    font-size: 1em;
     font-weight: bold;
-    animation: blink 1s infinite;
 }
 
-@keyframes blink {
-    0%, 50%, 100% { opacity: 1; }
-    25%, 75% { opacity: 0.5; }
+.btn-desc {
+    font-size: 0.7em;
+    color: #aaa;
+    font-weight: normal;
 }
 
-/* ===== モーダル（ゲーム終了） ===== */
+.btn-cost {
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+/* ===== アタックボタン ===== */
+.attack-btn {
+    border-color: #ff0064;
+    color: #ff0064;
+}
+
+.attack-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255, 0, 100, 0.3), rgba(255, 0, 100, 0.1));
+    box-shadow: 0 0 20px rgba(255, 0, 100, 0.5);
+    text-shadow: 0 0 10px #ff0064;
+}
+
+.attack-btn.active {
+    background: linear-gradient(135deg, rgba(255, 0, 100, 0.5), rgba(255, 0, 100, 0.2));
+    box-shadow: 0 0 30px rgba(255, 0, 100, 0.8), inset 0 0 15px rgba(255, 0, 100, 0.2);
+}
+
+/* ===== ディフェンスボタン ===== */
+.defense-btn {
+    border-color: #00ffff;
+    color: #00ffff;
+}
+
+.defense-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 255, 0.1));
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.defense-btn.active {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(0, 255, 255, 0.2));
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), inset 0 0 15px rgba(0, 255, 255, 0.2);
+}
+
+/* ===== チャージボタン ===== */
+.charge-btn {
+    border-color: #ffff00;
+    color: #ffff00;
+}
+
+.charge-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255, 255, 0, 0.3), rgba(255, 255, 0, 0.1));
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+    text-shadow: 0 0 10px #ffff00;
+}
+
+.charge-btn.active {
+    background: linear-gradient(135deg, rgba(255, 255, 0, 0.5), rgba(255, 255, 0, 0.2));
+    box-shadow: 0 0 30px rgba(255, 255, 0, 0.8), inset 0 0 15px rgba(255, 255, 0, 0.2);
+}
+
+/* ===== ゲーム終了モーダル ===== */
 .game-over-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
+    z-index: 2000;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
 }
 
-.modal-content {
-    background: white;
+.modal-card {
+    position: relative;
+    z-index: 2001;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    border: 3px solid #ff0064;
+    border-radius: 10px;
     padding: 40px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease;
+    max-width: 500px;
+    box-shadow: 0 0 40px rgba(255, 0, 100, 0.5);
+    animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes slideUp {
+@keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: scale(0.5) translateY(-50px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1) translateY(0);
     }
 }
 
-#gameOverTitle {
+.modal-header {
     font-size: 2.5em;
+    text-align: center;
+    color: #ff0064;
+    text-shadow: 0 0 20px #ff0064;
     margin-bottom: 20px;
-    color: #333;
+    letter-spacing: 2px;
 }
 
-#gameOverMessage {
-    font-size: 1.3em;
+.modal-body {
+    text-align: center;
     margin-bottom: 30px;
-    color: #666;
+}
+
+.modal-message {
+    font-size: 1.3em;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.game-stats {
+    background: rgba(255, 0, 100, 0.1);
+    border: 2px solid #ff0064;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.stat-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 0, 100, 0.2);
+}
+
+.stat-line:last-child {
+    border-bottom: none;
+}
+
+.stat-name {
+    font-weight: bold;
+    color: #ffcccc;
+}
+
+.stat-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ff0064;
+    text-shadow: 0 0 10px #ff0064;
+}
+
+.modal-footer {
+    text-align: center;
 }
 
 .btn-restart {
     padding: 15px 40px;
     font-size: 1.1em;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
     font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ff0064 0%, #ff3399 100%);
+    color: white;
+    border: 2px solid #ff0064;
+    border-radius: 5px;
+    cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(255, 0, 100, 0.3);
 }
 
 .btn-restart:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    transform: scale(1.08);
+    box-shadow: 0 0 30px rgba(255, 0, 100, 0.6);
+}
+
+.btn-restart:active {
+    transform: scale(1.02);
 }
 
 /* ===== レスポンシブ ===== */
-@media (max-width: 768px) {
-    .battle-arena {
+@media (max-width: 1024px) {
+    .vs-arena {
         grid-template-columns: 1fr;
-        gap: 15px;
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .fighter-card {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .command-buttons {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2em;
+    }
+
+    .character-avatar {
+        font-size: 3.5em;
+    }
+
+    .fighter-card {
         padding: 15px;
+        min-width: 250px;
+    }
+
+    .action-selector {
+        padding: 20px;
+        min-height: auto;
     }
 
     .command-buttons {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .game-title {
-        font-size: 1.8em;
+    .modal-card {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vs-arena {
+        padding: 15px;
     }
 
-    .player-side h2 {
-        font-size: 1.3em;
+    .fighter-card {
+        min-width: 100%;
+    }
+
+    .center-arena {
+        min-width: 100%;
+        gap: 10px;
+    }
+
+    .health-bar-container,
+    .energy-bar-container {
+        height: 24px;
+    }
+
+    .health-text,
+    .energy-text {
+        font-size: 0.8em;
     }
 }
