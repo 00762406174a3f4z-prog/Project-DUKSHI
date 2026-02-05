@@ -26,6 +26,8 @@ class PlayerStats {
         this.mp = INITIAL_STATS.mp;
         this.maxMp = INITIAL_STATS.maxMp;
         this.lastAction = null;
+        this.consecutiveDefense = 0; // 連続防御カウンター
+        this.chargeBonus = 0; // チャージボーナス（1ターン持続）
     }
 
     canPerformAction(action) {
@@ -75,6 +77,8 @@ class PlayerStats {
         this.life = INITIAL_STATS.life;
         this.mp = INITIAL_STATS.mp;
         this.lastAction = null;
+        this.consecutiveDefense = 0;
+        this.chargeBonus = 0;
     }
 }
 
@@ -133,7 +137,7 @@ class BotAI {
     }
 
     /**
-     * ノーマルAI: 基本戦略
+     * ノーマルAI: 基本戦略（戦略性を強化）
      */
     normalDecision(validActions, botStats, playerStats) {
         // MP0の場合は強制的にチャージ
@@ -144,12 +148,32 @@ class BotAI {
         // 低ライフの場合は防御を優先
         if (botStats.life === 1) {
             if (validActions.includes(ACTIONS.BARRIER)) {
-                return Math.random() > 0.3 ? ACTIONS.BARRIER : ACTIONS.DUKSHI;
+                return Math.random() > 0.2 ? ACTIONS.BARRIER : ACTIONS.DUKSHI;
             }
         }
 
+        // プレイヤーの連続防御が3回以上なら攻撃で突破
+        if (playerStats.consecutiveDefense >= 2 && validActions.includes(ACTIONS.DUKSHI)) {
+            if (Math.random() < 0.7) return ACTIONS.DUKSHI;
+        }
+
+        // プレイヤーのチャージボーナスが溜まっているなら防御
+        if (playerStats.chargeBonus >= 1 && validActions.includes(ACTIONS.BARRIER)) {
+            if (Math.random() < 0.6) return ACTIONS.BARRIER;
+        }
+
+        // 自分のチャージボーナスがあれば攻撃を狙う
+        if (botStats.chargeBonus >= 1 && validActions.includes(ACTIONS.DUKSHI)) {
+            if (Math.random() < 0.8) return ACTIONS.DUKSHI;
+        }
+
+        // MP低下時はチャージ
+        if (botStats.mp < 2 && validActions.includes(ACTIONS.CHARGE)) {
+            return ACTIONS.CHARGE;
+        }
+
         // 通常は攻撃/防御をバランスよく
-        const attackChance = 0.5;
+        const attackChance = 0.55;
         if (Math.random() < attackChance && validActions.includes(ACTIONS.DUKSHI)) {
             return ACTIONS.DUKSHI;
         }
@@ -162,7 +186,7 @@ class BotAI {
     }
 
     /**
-     * ハードAI: 高度な戦略
+     * ハードAI: 高度な戦略（戦略性を大幅に強化）
      */
     hardDecision(validActions, botStats, playerStats) {
         // MP0の場合は強制的にチャージ
@@ -177,15 +201,50 @@ class BotAI {
 
         // プレイヤーのライフが低い場合は攻撃を狙う
         if (playerStats.life === 1 && validActions.includes(ACTIONS.DUKSHI)) {
-            return ACTIONS.DUKSHI;
+            // チャージボーナスがあれば確実に狙う
+            if (botStats.chargeBonus >= 1) {
+                return ACTIONS.DUKSHI;
+            }
+            return Math.random() > 0.3 ? ACTIONS.DUKSHI : ACTIONS.BARRIER;
         }
 
-        // MP管理：低い場合はチャージ、高い場合は攻撃
-        if (botStats.mp === 1 && validActions.includes(ACTIONS.CHARGE)) {
+        // プレイヤーの連続防御が多い場合は攻撃で突破を試みる
+        if (playerStats.consecutiveDefense >= 2) {
+            if (validActions.includes(ACTIONS.DUKSHI) && Math.random() < 0.85) {
+                return ACTIONS.DUKSHI;
+            }
+        }
+
+        // プレイヤーのチャージボーナスが溜まっている場合は防御
+        if (playerStats.chargeBonus >= 1) {
+            if (validActions.includes(ACTIONS.BARRIER) && Math.random() < 0.75) {
+                return ACTIONS.BARRIER;
+            }
+        }
+
+        // 自分のチャージボーナスを活用
+        if (botStats.chargeBonus >= 1 && validActions.includes(ACTIONS.DUKSHI)) {
+            if (Math.random() < 0.9) {
+                return ACTIONS.DUKSHI;
+            }
+        }
+
+        // MP管理戦略：低い場合はチャージ
+        if (botStats.mp <= 1 && validActions.includes(ACTIONS.CHARGE)) {
             return ACTIONS.CHARGE;
         }
 
-        // 攻撃と防御のバランス
+        // MP低下の警告時もチャージ考慮
+        if (botStats.mp < 2 && validActions.includes(ACTIONS.CHARGE)) {
+            if (Math.random() < 0.4) return ACTIONS.CHARGE;
+        }
+
+        // 相手より自分のHPが高い場合は攻撃
+        if (botStats.life > playerStats.life && validActions.includes(ACTIONS.DUKSHI)) {
+            if (Math.random() < 0.7) return ACTIONS.DUKSHI;
+        }
+
+        // バランス取れた選択
         const pattern = [ACTIONS.DUKSHI, ACTIONS.DUKSHI, ACTIONS.BARRIER];
         const choice = pattern[Math.floor(Math.random() * pattern.length)];
 
@@ -200,12 +259,14 @@ class BotAI {
 // ===== ゲームジャッジクラス =====
 class GameJudge {
     /**
-     * 2つのアクションの結果を判定
+     * 2つのアクションの結果を判定（戦略性を考慮）
      * @param {string} playerAction - プレイヤーのアクション
      * @param {string} botAction - ボットのアクション
+     * @param {PlayerStats} playerStats - プレイヤーのステータス
+     * @param {PlayerStats} botStats - ボットのステータス
      * @returns {Object} 戦闘結果
      */
-    judge(playerAction, botAction) {
+    judge(playerAction, botAction, playerStats, botStats) {
         const result = {
             playerAction,
             botAction,
@@ -217,41 +278,84 @@ class GameJudge {
             animationType: 'none'
         };
 
-        // 攻撃vs防御の相性判定
-        if (playerAction === ACTIONS.DUKSHI) {
-            if (botAction === ACTIONS.BARRIER) {
+        // 攻撃vs攻撃 - 打ち合い判定
+        if (playerAction === ACTIONS.DUKSHI && botAction === ACTIONS.DUKSHI) {
+            // チャージボーナスがある方が優位
+            const playerDamage = 1 + playerStats.chargeBonus;
+            const botDamage = 1 + botStats.chargeBonus;
+            
+            if (playerDamage > botDamage) {
+                result.botDamage = playerDamage;
+                result.message = 'プレイヤーの力強い一撃がボットを圧倒！';
+                result.animationType = 'attack';
+            } else if (botDamage > playerDamage) {
+                result.playerDamage = botDamage;
+                result.message = 'ボットの攻撃がプレイヤーを圧倒！';
+                result.animationType = 'attack';
+            } else {
+                result.message = '同等の力で打ち合った！互いにダメージなし';
+            }
+        }
+        // 攻撃vs防御 - 防御の連続使用で破られやすくなる
+        else if (playerAction === ACTIONS.DUKSHI && botAction === ACTIONS.BARRIER) {
+            // 連続防御で防ぎきれない確率が上昇
+            const breakChance = Math.min(botStats.consecutiveDefense * 0.4, 0.6);
+            if (Math.random() < breakChance) {
+                result.botDamage = 1 + playerStats.chargeBonus;
+                result.message = `バリアが破れた！デュクシが直撃（防御${botStats.consecutiveDefense}連続）`;
+                result.animationType = 'attack';
+            } else {
                 result.message = 'バリアで防衛成功！';
-                result.playerDamage = 0;
-            } else if (botAction === ACTIONS.CHARGE) {
-                result.playerDamage = 0;
-                result.botDamage = 1;
-                result.message = 'デュクシがチャージ中のボットに直撃！';
+            }
+        }
+        // 防御vs攻撃
+        else if (playerAction === ACTIONS.BARRIER && botAction === ACTIONS.DUKSHI) {
+            const breakChance = Math.min(playerStats.consecutiveDefense * 0.4, 0.6);
+            if (Math.random() < breakChance) {
+                result.playerDamage = 1 + botStats.chargeBonus;
+                result.message = `バリアが破れた！ボットのデュクシが直撃（防御${playerStats.consecutiveDefense}連続）`;
                 result.animationType = 'attack';
             } else {
-                result.botDamage = 1;
-                result.message = 'デュクシが相手に直撃！';
-                result.animationType = 'attack';
-            }
-        } else if (playerAction === ACTIONS.BARRIER) {
-            if (botAction === ACTIONS.DUKSHI) {
                 result.message = 'バリアで自分の攻撃を防いだ！';
-                result.playerDamage = 0;
-            } else if (botAction === ACTIONS.CHARGE) {
-                result.message = '互いに無防備...何も起こらなかった';
-            } else {
-                result.message = '互いに防戦態勢';
             }
+        }
+        // 攻撃vs チャージ - 無防備を狙い撃ち
+        else if (playerAction === ACTIONS.DUKSHI && botAction === ACTIONS.CHARGE) {
+            result.botDamage = 1 + playerStats.chargeBonus;
+            result.message = 'チャージ中のボットに隙を見て直撃！';
+            result.animationType = 'attack';
+        }
+        // チャージvs攻撃
+        else if (playerAction === ACTIONS.CHARGE && botAction === ACTIONS.DUKSHI) {
+            result.playerDamage = 1 + botStats.chargeBonus;
+            result.message = 'チャージ中に無防備を狙われた！ボットの攻撃が直撃';
+            result.animationType = 'attack';
+        }
+        // 防御vs防御 - 互いに守りを固める
+        else if (playerAction === ACTIONS.BARRIER && botAction === ACTIONS.BARRIER) {
+            result.message = '互いに防戦態勢。硬い防御の応酬';
             result.animationType = 'defense';
-        } else if (playerAction === ACTIONS.CHARGE) {
-            if (botAction === ACTIONS.DUKSHI) {
-                result.playerDamage = 1;
-                result.message = 'チャージ中、ボットのデュクシが直撃！';
-                result.animationType = 'attack';
-            } else if (botAction === ACTIONS.CHARGE) {
-                result.message = '互いにチャージ...MP充填中';
+        }
+        // 防御vs チャージ - 攻撃側優位
+        else if (playerAction === ACTIONS.BARRIER && botAction === ACTIONS.CHARGE) {
+            // 防御がボットのチャージを受ける
+            if (playerStats.consecutiveDefense > 1) {
+                result.message = '連続防御が功を奏し、ボットのチャージを耐える';
             } else {
-                result.message = 'チャージが成功、防られず...';
+                result.message = '互いに無防備...何も起こらなかった';
             }
+        }
+        // チャージvs防御
+        else if (playerAction === ACTIONS.CHARGE && botAction === ACTIONS.BARRIER) {
+            if (botStats.consecutiveDefense > 1) {
+                result.message = 'ボットの連続防御がプレイヤーのチャージを耐える';
+            } else {
+                result.message = '互いに無防備...何も起こらなかった';
+            }
+        }
+        // チャージvs チャージ - MP充填中
+        else if (playerAction === ACTIONS.CHARGE && botAction === ACTIONS.CHARGE) {
+            result.message = '互いにチャージ...MP充填中。力が溜まっていく';
             result.animationType = 'charge';
         }
 
@@ -362,8 +466,12 @@ class DukshiGame {
         this.playerStats.performAction(this.playerAction);
         this.botStats.performAction(this.botAction);
 
-        // 判定
-        const result = this.judge.judge(this.playerAction, this.botAction);
+        // チャージボーナスの適用と更新
+        // チャージボーナスは前のターンのチャージから付与
+        // 次のターン以降チャージボーナスはリセット対象
+        
+        // 判定（戦略性を考慮）
+        const result = this.judge.judge(this.playerAction, this.botAction, this.playerStats, this.botStats);
 
         // ダメージ適用
         if (result.playerDamage > 0) {
@@ -371,6 +479,37 @@ class DukshiGame {
         }
         if (result.botDamage > 0) {
             this.botStats.takeDamage(result.botDamage);
+        }
+
+        // 戦略状態の更新
+        // 連続防御カウンター
+        if (this.playerAction === ACTIONS.BARRIER) {
+            this.playerStats.consecutiveDefense++;
+        } else {
+            this.playerStats.consecutiveDefense = 0;
+        }
+
+        if (this.botAction === ACTIONS.BARRIER) {
+            this.botStats.consecutiveDefense++;
+        } else {
+            this.botStats.consecutiveDefense = 0;
+        }
+
+        // チャージボーナスの処理
+        // 攻撃を使った場合、チャージボーナスを消費
+        if (this.playerAction === ACTIONS.DUKSHI) {
+            this.playerStats.chargeBonus = 0;
+        }
+        // チャージを使った場合、次のターンのボーナスを一つ増やす
+        if (this.playerAction === ACTIONS.CHARGE) {
+            this.playerStats.chargeBonus = Math.min(this.playerStats.chargeBonus + 1, 2);
+        }
+
+        if (this.botAction === ACTIONS.DUKSHI) {
+            this.botStats.chargeBonus = 0;
+        }
+        if (this.botAction === ACTIONS.CHARGE) {
+            this.botStats.chargeBonus = Math.min(this.botStats.chargeBonus + 1, 2);
         }
 
         // ログ出力
