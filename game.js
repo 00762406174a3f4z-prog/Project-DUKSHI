@@ -461,13 +461,12 @@ class DukshiGame {
     start() {
         this.gameRunning = true;
         this.updateAllUI();
+        this.addBattleLog('ゲーム開始！「デュクシ！」');
     }
-}
-    start() {
-        this.gameRunning = true;
-        this.updateAllUI();
-    }
-}
+
+    /**
+     * 全UIを更新
+     */
     updateAllUI() {
         // プレイヤーステータス
         this.elements.playerLifeValue.textContent = `${this.playerStats.life}/${this.playerStats.maxLife}`;
@@ -516,12 +515,10 @@ class DukshiGame {
     }
 
     /**
-     * ゲーム開始
+     * バトルログを追加
      */
-    start() {
-        this.gameRunning = true;
-        this.updateAllUI();
-        this.addBattleLog('ゲーム開始！「デュクシ！」');
+    addBattleLog(message) {
+        // ゲーム関数内で使用される関数です
     }
 }
 
