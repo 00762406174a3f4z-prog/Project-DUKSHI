@@ -29,14 +29,20 @@ class Character {
         
         this.health = 3;
         this.maxHealth = 3;
+        this.mp = 0;
+        this.maxMp = 3;
         this.isPlayer = isPlayer;
         
         this.isBlocking = false;
         this.blockingDuration = 0; // ブロック中の時間
+        this.isCharging = false;
+        this.chargeTimer = 0;
         this.blockCooldown = 0; // ブロックのクールダウン時間
         this.isJumping = false;
         this.isAttacking = false;
+        this.isMegaAttacking = false;
         this.attackCooldown = 0;
+        this.attackDuration = 0;
         this.facingDirection = isPlayer ? 1 : -1; // 1 = right, -1 = left（向き）
         this.attackDirection = 1; // 攻撃する方向
         
@@ -75,6 +81,15 @@ class Character {
         if (this.attackCooldown > 0) {
             this.attackCooldown--;
         }
+
+        // 攻撃持続時間（視覚用）
+        if (this.attackDuration > 0) {
+            this.attackDuration--;
+            if (this.attackDuration <= 0) {
+                this.isAttacking = false;
+                this.isMegaAttacking = false;
+            }
+        }
         
         // ブロッククールダウン
         if (this.blockCooldown > 0) {
@@ -89,6 +104,20 @@ class Character {
                 this.isBlocking = false;
             }
         }
+
+        // チャージ処理
+        if (this.isCharging && !this.isBlocking && !this.isAttacking) {
+            this.chargeTimer++;
+            if (this.chargeTimer >= 40) { // 約0.6秒で1MP
+                if (this.mp < this.maxMp) {
+                    this.mp++;
+                }
+                this.chargeTimer = 0;
+            }
+            this.vx = 0; // チャージ中は移動不可
+        } else {
+            this.chargeTimer = 0;
+        }
     }
     
     draw(ctx) {
@@ -97,6 +126,15 @@ class Character {
         ctx.font = '40px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        // チャージ中のエフェクト
+        if (this.isCharging) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 30 + Math.sin(Date.now() / 100) * 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
         
         // ブロック中は別の色
         if (this.isBlocking) {
@@ -125,12 +163,45 @@ class Character {
     
     attack(targetX) {
         if (this.attackCooldown > 0) return false;
+        if (this.mp < 1) return false; // MP不足
         
+        this.mp -= 1;
         this.isAttacking = true;
+        this.isMegaAttacking = false;
+        this.isCharging = false;
+        this.attackDuration = 10; // 10フレーム間表示
         // 攻撃方向を向いている方向に設定
         this.attackDirection = this.facingDirection;
         this.attackCooldown = ATTACK_COOLDOWN;
+        this.attackHasHit = false; // ヒット判定フラグ
         return true;
+    }
+
+    megaAttack(targetX) {
+        if (this.attackCooldown > 0) return false;
+        if (this.mp < 3) return false; // MP不足
+
+        this.mp -= 3;
+        this.isAttacking = true;
+        this.isMegaAttacking = true;
+        this.isCharging = false;
+        this.attackDuration = 20; // 20フレーム間表示
+        // 攻撃方向を向いている方向に設定
+        this.attackDirection = this.facingDirection;
+        this.attackCooldown = ATTACK_COOLDOWN * 1.5;
+        this.attackHasHit = false; // ヒット判定フラグ
+        return true;
+    }
+
+    startCharging() {
+        if (!this.isBlocking && !this.isAttacking) {
+            this.isCharging = true;
+        }
+    }
+
+    stopCharging() {
+        this.isCharging = false;
+        this.chargeTimer = 0;
     }
     
     block() {
@@ -145,6 +216,7 @@ class Character {
         }
         
         this.isBlocking = true;
+        this.isCharging = false;
         return true;
     }
     
@@ -163,9 +235,13 @@ class Character {
             this.health = Math.max(0, this.health);
             this.lastAttackTime = Date.now();
         } else {
-            // ブロック中でも軽いダメージ
-            this.health -= Math.ceil(damage * 0.3);
+            // ブロック中はダメージを大幅に軽減
+            // 通常攻撃(1)なら0、メガ攻撃(3)なら1ダメージ
+            const reducedDamage = Math.floor(damage * 0.4);
+            this.health -= reducedDamage;
             this.health = Math.max(0, this.health);
+            // ブロック成功時も少しフラッシュ（フィードバック用）
+            this.lastAttackTime = Date.now() - 100;
         }
     }
     
@@ -183,12 +259,16 @@ class Character {
         this.vx = 0;
         this.vy = 0;
         this.health = this.maxHealth;
+        this.mp = 0;
         this.isBlocking = false;
         this.blockingDuration = 0;
         this.blockCooldown = 0;
+        this.isCharging = false;
+        this.chargeTimer = 0;
         this.isJumping = false;
         this.isAttacking = false;
         this.attackCooldown = 0;
+        this.attackDuration = 0;
         this.facingDirection = this.isPlayer ? 1 : -1;
     }
     
@@ -230,24 +310,34 @@ class Character {
         if (minOverlap === overlapLeft || minOverlap === overlapRight) {
             if (minOverlap === overlapLeft) {
                 // このキャラが左から衝突
-                this.x -= overlapLeft / 2;
-                other.x += overlapLeft / 2;
+                this.x -= overlapLeft / 2 + 0.1;
+                other.x += overlapLeft / 2 + 0.1;
             } else {
                 // このキャラが右から衝突
-                this.x += overlapRight / 2;
-                other.x -= overlapRight / 2;
+                this.x += overlapRight / 2 + 0.1;
+                other.x -= overlapRight / 2 + 0.1;
             }
-            // 水平速度をリセット（押し返される）
-            this.vx = 0;
-            other.vx = 0;
+
+            // 速度を減衰させるが完全に0にはしない
+            this.vx *= -0.2;
+            other.vx *= -0.2;
+        } else if (minOverlap === overlapTop) {
+            // 上から衝突（踏みつけなど）
+            this.y -= overlapTop;
+            this.vy = Math.min(0, this.vy);
+        } else if (minOverlap === overlapBottom) {
+            // 下から衝突
+            this.y += overlapBottom;
+            this.vy = Math.max(0, this.vy);
         }
     }
 }
 
 // AIボット
 class AIBot {
-    constructor(character) {
+    constructor(character, difficulty = 'normal') {
         this.character = character;
+        this.difficulty = difficulty;
         this.decisionTimer = 0;
         this.currentAction = null;
     }
@@ -258,7 +348,18 @@ class AIBot {
         // 定期的に新しい判断
         if (this.decisionTimer <= 0) {
             this.makeDecision(playerChar);
-            this.decisionTimer = 60; // 60フレームごと
+
+            // 難易度によって反応速度を変える
+            switch (this.difficulty) {
+                case 'easy':
+                    this.decisionTimer = 90; // 遅い
+                    break;
+                case 'hard':
+                    this.decisionTimer = 30; // 速い
+                    break;
+                default:
+                    this.decisionTimer = 60; // 普通
+            }
         }
         
         // 現在のアクションを実行
@@ -268,33 +369,36 @@ class AIBot {
     makeDecision(playerChar) {
         const distance = this.character.getDistance(playerChar);
         const healthRatio = this.character.health / this.character.maxHealth;
-        const playerHealthRatio = playerChar.health / playerChar.maxHealth;
         
-        // 攻撃範囲
-        if (distance < ATTACK_RANGE && !playerChar.isBlocking) {
+        // 1. 防御優先（相手が攻撃中かつ自分が低HPでない場合、または確率で）
+        if (distance < ATTACK_RANGE + 40 && playerChar.isAttacking) {
+            if (Math.random() < 0.8 && this.character.blockCooldown <= 0) {
+                this.currentAction = 'block';
+                return;
+            }
+        }
+        
+        // 2. メガ攻撃（MP満タンかつ射程内）
+        if (this.character.mp >= 3 && distance < ATTACK_RANGE * 1.3) {
+            this.currentAction = 'megaAttack';
+            return;
+        }
+        
+        // 3. 通常攻撃（MPありかつ射程内）
+        if (this.character.mp >= 1 && distance < ATTACK_RANGE) {
             if (Math.random() < 0.7) {
                 this.currentAction = 'attack';
                 return;
             }
         }
         
-        // ブロック判定
-        if (distance < ATTACK_RANGE + 20 && playerChar.isAttacking) {
-            if (Math.random() < 0.8 && this.character.health > 1) {
-                this.currentAction = 'block';
-                return;
-            }
+        // 4. チャージ（MP不足または距離がある時）
+        if (this.character.mp < 1 || (this.character.mp < 3 && distance > ATTACK_RANGE * 2)) {
+            this.currentAction = 'charge';
+            return;
         }
-        
-        // 低HP時は防御を優先
-        if (healthRatio < 0.4) {
-            if (Math.random() < 0.6) {
-                this.currentAction = 'block';
-                return;
-            }
-        }
-        
-        // 移動
+
+        // 5. 移動
         if (distance > ATTACK_RANGE) {
             if (playerChar.x > this.character.x) {
                 this.currentAction = 'moveRight';
@@ -302,7 +406,12 @@ class AIBot {
                 this.currentAction = 'moveLeft';
             }
         } else {
-            this.currentAction = 'idle';
+            // 距離が近すぎる場合は少し離れるか待機
+            if (Math.random() < 0.3) {
+                this.currentAction = 'idle';
+            } else {
+                this.currentAction = playerChar.x > this.character.x ? 'moveLeft' : 'moveRight';
+            }
         }
     }
     
@@ -311,31 +420,40 @@ class AIBot {
         
         switch (this.currentAction) {
             case 'attack':
+                this.character.stopCharging();
                 if (distance < ATTACK_RANGE) {
                     this.character.attack(playerChar.x);
                 }
                 break;
+            case 'megaAttack':
+                this.character.stopCharging();
+                if (distance < ATTACK_RANGE * 1.5) {
+                    this.character.megaAttack(playerChar.x);
+                }
+                break;
+            case 'charge':
+                this.character.stopBlocking();
+                this.character.startCharging();
+                break;
             case 'block':
-                // ブロック可能かチェック（クールダウン中でなく、ブロック中でない）
+                this.character.stopCharging();
                 if (this.character.blockCooldown <= 0) {
                     this.character.block();
-                } else {
-                    // クールダウン中は移動に切り替え
-                    if (playerChar.x > this.character.x) {
-                        this.character.vx = 3;
-                    } else {
-                        this.character.vx = -3;
-                    }
                 }
                 break;
             case 'moveRight':
+                this.character.stopCharging();
+                this.character.stopBlocking();
                 this.character.vx = 3;
                 break;
             case 'moveLeft':
+                this.character.stopCharging();
+                this.character.stopBlocking();
                 this.character.vx = -3;
                 break;
             case 'idle':
                 this.character.vx = 0;
+                this.character.stopCharging();
                 this.character.stopBlocking();
                 break;
         }
@@ -350,7 +468,9 @@ class DukshiGame {
         
         this.player = new Character(100, true);
         this.bot = new Character(CANVAS_WIDTH - 100, false);
-        this.ai = new AIBot(this.bot);
+
+        // 難易度設定 ('easy', 'normal', 'hard')
+        this.ai = new AIBot(this.bot, 'normal');
         
         this.gameRunning = false;
         this.gameOverTime = null;
@@ -381,10 +501,22 @@ class DukshiGame {
                     }
                 }
             }
-            if (e.key === 'w' || e.key === 'W') {
+            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
                 e.preventDefault();
                 if (this.gameRunning) {
                     this.player.jump();
+                }
+            }
+            if (e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+                if (this.gameRunning) {
+                    this.player.megaAttack(this.bot.x);
+                }
+            }
+            if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (this.gameRunning) {
+                    this.player.startCharging();
                 }
             }
         });
@@ -394,6 +526,9 @@ class DukshiGame {
             
             if (e.key === 'Shift') {
                 this.player.stopBlocking();
+            }
+            if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
+                this.player.stopCharging();
             }
         });
         
@@ -450,30 +585,36 @@ class DukshiGame {
     checkAttackCollisions() {
         const distance = this.player.getDistance(this.bot);
         
-        // プレイヤーの攻撃判定（一方向のみ）
-        if (this.player.isAttacking && this.player.attackCooldown === ATTACK_COOLDOWN) {
-            if (distance < ATTACK_RANGE) {
-                // 攻撃方向にボットがいるかチェック
+        // プレイヤーの攻撃判定
+        if (this.player.isAttacking && !this.player.attackHasHit) {
+            const range = this.player.isMegaAttacking ? ATTACK_RANGE * 1.5 : ATTACK_RANGE;
+            const damage = this.player.isMegaAttacking ? ATTACK_DAMAGE * 3 : ATTACK_DAMAGE;
+
+            if (distance < range) {
                 const botIsInFront = 
                     (this.player.attackDirection === 1 && this.bot.x > this.player.x) ||
                     (this.player.attackDirection === -1 && this.bot.x < this.player.x);
                 
                 if (botIsInFront) {
-                    this.bot.takeDamage(ATTACK_DAMAGE);
+                    this.bot.takeDamage(damage);
+                    this.player.attackHasHit = true;
                 }
             }
         }
         
-        // ボットの攻撃判定（一方向のみ）
-        if (this.bot.isAttacking && this.bot.attackCooldown === ATTACK_COOLDOWN) {
-            if (distance < ATTACK_RANGE) {
-                // 攻撃方向にプレイヤーがいるかチェック
+        // ボットの攻撃判定
+        if (this.bot.isAttacking && !this.bot.attackHasHit) {
+            const range = this.bot.isMegaAttacking ? ATTACK_RANGE * 1.5 : ATTACK_RANGE;
+            const damage = this.bot.isMegaAttacking ? ATTACK_DAMAGE * 3 : ATTACK_DAMAGE;
+
+            if (distance < range) {
                 const playerIsInFront = 
                     (this.bot.attackDirection === 1 && this.player.x > this.bot.x) ||
                     (this.bot.attackDirection === -1 && this.player.x < this.bot.x);
                 
                 if (playerIsInFront) {
-                    this.player.takeDamage(ATTACK_DAMAGE);
+                    this.player.takeDamage(damage);
+                    this.bot.attackHasHit = true;
                 }
             }
         }
@@ -501,26 +642,28 @@ class DukshiGame {
         
         // 攻撃範囲の視覚化（デバッグ - 一方向表示）
         if (this.player.isAttacking) {
-            this.ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
-            this.ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
-            this.ctx.lineWidth = 2;
+            const range = this.player.isMegaAttacking ? ATTACK_RANGE * 1.5 : ATTACK_RANGE;
+            this.ctx.strokeStyle = this.player.isMegaAttacking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 100, 100, 0.5)';
+            this.ctx.fillStyle = this.player.isMegaAttacking ? 'rgba(255, 0, 0, 0.3)' : 'rgba(255, 100, 100, 0.2)';
+            this.ctx.lineWidth = this.player.isMegaAttacking ? 4 : 2;
             this.ctx.beginPath();
             const startAngle = this.player.attackDirection === 1 ? -Math.PI / 4 : Math.PI + Math.PI / 4;
             const endAngle = this.player.attackDirection === 1 ? Math.PI / 4 : Math.PI - Math.PI / 4;
-            this.ctx.arc(this.player.x, this.player.y, ATTACK_RANGE, startAngle, endAngle);
+            this.ctx.arc(this.player.x, this.player.y, range, startAngle, endAngle);
             this.ctx.lineTo(this.player.x, this.player.y);
             this.ctx.fill();
             this.ctx.stroke();
         }
         
         if (this.bot.isAttacking) {
-            this.ctx.strokeStyle = 'rgba(100, 100, 255, 0.5)';
-            this.ctx.fillStyle = 'rgba(100, 100, 255, 0.2)';
-            this.ctx.lineWidth = 2;
+            const range = this.bot.isMegaAttacking ? ATTACK_RANGE * 1.5 : ATTACK_RANGE;
+            this.ctx.strokeStyle = this.bot.isMegaAttacking ? 'rgba(255, 0, 255, 0.8)' : 'rgba(100, 100, 255, 0.5)';
+            this.ctx.fillStyle = this.bot.isMegaAttacking ? 'rgba(255, 0, 255, 0.3)' : 'rgba(100, 100, 255, 0.2)';
+            this.ctx.lineWidth = this.bot.isMegaAttacking ? 4 : 2;
             this.ctx.beginPath();
             const startAngle = this.bot.attackDirection === 1 ? -Math.PI / 4 : Math.PI + Math.PI / 4;
             const endAngle = this.bot.attackDirection === 1 ? Math.PI / 4 : Math.PI - Math.PI / 4;
-            this.ctx.arc(this.bot.x, this.bot.y, ATTACK_RANGE, startAngle, endAngle);
+            this.ctx.arc(this.bot.x, this.bot.y, range, startAngle, endAngle);
             this.ctx.lineTo(this.bot.x, this.bot.y);
             this.ctx.fill();
             this.ctx.stroke();
@@ -582,6 +725,21 @@ class DukshiGame {
         
         playerHealthText.textContent = `${this.player.health}/${this.player.maxHealth}`;
         botHealthText.textContent = `${this.bot.health}/${this.bot.maxHealth}`;
+
+        // MPバー
+        const playerMpBar = document.getElementById('playerMpBar');
+        const botMpBar = document.getElementById('botMpBar');
+        const playerMpText = document.getElementById('playerMpText');
+        const botMpText = document.getElementById('botMpText');
+
+        const playerMpPercent = (this.player.mp / this.player.maxMp) * 100;
+        const botMpPercent = (this.bot.mp / this.bot.maxMp) * 100;
+
+        playerMpBar.style.setProperty('--mp', playerMpPercent + '%');
+        botMpBar.style.setProperty('--mp', botMpPercent + '%');
+
+        playerMpText.textContent = `${this.player.mp}/${this.player.maxMp}`;
+        botMpText.textContent = `${this.bot.mp}/${this.bot.maxMp}`;
     }
     
     gameEnd(playerWon) {

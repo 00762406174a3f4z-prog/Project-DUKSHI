@@ -93,10 +93,39 @@ body {
     width: 100%;
 }
 
-.health-display > span {
+.health-display > span,
+.mp-display > span {
     font-size: 0.85rem;
     color: #fff;
     min-width: 40px;
+}
+
+.mp-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.mp-bar-small {
+    flex: 1;
+    height: 12px;
+    background: #333;
+    border: 1px solid #ffd93d;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.mp-bar-small::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ffd93d, #fff4cc);
+    transition: width 0.3s ease;
 }
 
 canvas {
@@ -235,9 +264,10 @@ canvas {
     }
 }
 
-/* ヘルスバーのカスタムプロパティ対応 */
+/* ヘルスバー・MPバーのカスタムプロパティ対応 */
 :root {
     --health: 100%;
+    --mp: 0%;
 }
 
 #playerHealthBar,
@@ -245,7 +275,17 @@ canvas {
     --health: 100%;
 }
 
+#playerMpBar,
+#botMpBar {
+    --mp: 0%;
+}
+
 #playerHealthBar::after,
 #botHealthBar::after {
     width: var(--health) !important;
+}
+
+#playerMpBar::after,
+#botMpBar::after {
+    width: var(--mp) !important;
 }
